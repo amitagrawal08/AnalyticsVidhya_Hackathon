@@ -1,0 +1,63 @@
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.naive_bayes import BernoulliNB
+import pandas as pd
+import csv
+
+train_tweet_data=pd.read_csv("train_2kmZucJ.csv")
+train_tweet_data.columns
+
+def training_model(data, vectorizer):
+    training_text = data['tweet']
+    training_result = data['label']
+    training_id = data['id']
+    training_text = vectorizer.fit_transform(training_text)
+    return BernoulliNB().fit(training_text, training_result, training_id)
+
+vectorizer = CountVectorizer(binary = 'true')
+classifier = training_model(train_tweet_data, vectorizer)
+
+def analyse_text(classifier, vectorizer, text, index):
+    return index, text, classifier.predict(vectorizer.transform([text])), 
+
+trainfile_index=[]
+trainfile_label=[]
+trainfile_text=[]
+
+for index in train_tweet_data['id']:
+    trainfile_index.append(index)
+for text in train_tweet_data['tweet']:
+    trainfile_text.append(text)
+i=0
+    
+while i < len(trainfile_index):
+    index, text, train_result = analyse_text(classifier, vectorizer, trainfile_text[i], trainfile_index[i])
+    #print(index, ":", text, ":", train_result)
+    i+=1
+
+
+## Test and get the result of provided test data
+    
+test_tweet_data=pd.read_csv("test_oJQbWVk.csv")
+test_tweet_data.columns
+
+outputfile_index=[]
+outputfile=[]
+outputfile_text=[]
+
+for index in test_tweet_data['id']:
+    outputfile_index.append(index)
+for text in test_tweet_data['tweet']:
+    outputfile_text.append(text)
+
+i=0
+while i < len(outputfile_index):
+    index, text, test_label = analyse_text(classifier, vectorizer, outputfile_text[i], outputfile_index[i])
+    #print(index, ":", text, ":", test_label)
+    i+=1
+    output_label = test_label[0]
+    output=index,output_label
+    print(index, ":", output_label)
+    outputfile.append(output)
+
+df1= pd.DataFrame(data=outputfile, columns=['id','label'])
+df1.to_csv('SentimentAnalysis_output.csv', index=False)
